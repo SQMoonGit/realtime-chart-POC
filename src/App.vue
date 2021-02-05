@@ -1,29 +1,73 @@
 <template>
-  <div id="app">
-    <img alt="Vue logo" src="./assets/logo.png" />
-    <HelloWorld msg="Welcome to Your Vue.js + TypeScript App" />
+  <div id="small">
+    <line-chart :chart-data="datacollection" id="mychart"></line-chart>
   </div>
 </template>
 
 <script lang="ts">
+import LineChart from "./LineChart.js";
+import { io } from "socket.io-client";
 import { Component, Vue } from "vue-property-decorator";
-import HelloWorld from "./components/HelloWorld.vue";
 
+const socket = io("http://localhost:4000");
 @Component({
-  components: {
-    HelloWorld
-  }
+  components: { LineChart },
 })
-export default class App extends Vue {}
+export default class App extends Vue {
+  private datacollection: any = null;
+
+  created() {
+    this.getRealtimeData();
+  }
+
+  public fillData(fetchedData: any) {
+    this.datacollection = {
+      labels: [
+        this.getRandomChartValues(fetchedData),
+        this.getRandomChartValues(fetchedData),
+      ],
+      datasets: [
+        {
+          label: "Google Stock",
+          backgroundColor: "blue",
+          data: [
+            this.getRandomChartValues(fetchedData),
+            this.getRandomChartValues(fetchedData),
+          ],
+        },
+        {
+          label: "Apple Stock",
+          backgroundColor: "yellow",
+          data: [
+            this.getRandomChartValues(fetchedData),
+            this.getRandomChartValues(fetchedData),
+          ],
+        },
+      ],
+    };
+  }
+
+  public getRealtimeData() {
+    socket.on("newdata", (fetchedData) => {
+      this.fillData(fetchedData);
+    });
+  }
+
+  public getRandomChartValues(digit: number) {
+    return Math.floor(Math.random() * digit);
+  }
+}
 </script>
 
 <style>
-#app {
+#small {
   font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
-  margin-top: 60px;
+  /* margin-top: 60px; */
+  max-width: 600px;
+  margin: 150px auto;
 }
 </style>
